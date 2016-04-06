@@ -14,7 +14,7 @@ defmodule NodeBucket.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger],
+    [applications: [ :logger, :instream, :mongodb, :poolboy ],
     mod: {NodeBucket, []}]
   end
 
@@ -29,8 +29,10 @@ defmodule NodeBucket.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-        {:socket, "~> 0.3.1"},
-        {:cipher, "1.0.0"}
+        { :poison, "~> 2.1" },
+        { :instream, "~> 0.10" },
+        { :mongodb, "~> 0.1.1" },
+        { :poolboy, "~> 1.5" }
     ]
   end
 end

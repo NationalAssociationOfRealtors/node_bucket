@@ -1,3 +1,13 @@
-%{"cipher": {:hex, :cipher, "1.0.0"},
+%{"certifi": {:hex, :certifi, "0.4.0"},
+  "cipher": {:hex, :cipher, "1.0.0"},
+  "connection": {:hex, :connection, "1.0.2"},
+  "hackney": {:hex, :hackney, "1.6.0"},
+  "idna": {:hex, :idna, "1.2.0"},
+  "instream": {:hex, :instream, "0.10.0"},
+  "metrics": {:hex, :metrics, "1.0.1"},
+  "mimerl": {:hex, :mimerl, "1.0.2"},
+  "mongodb": {:hex, :mongodb, "0.1.1"},
   "poison": {:hex, :poison, "2.1.0"},
-  "socket": {:hex, :socket, "0.3.1"}}
+  "poolboy": {:hex, :poolboy, "1.5.1"},
+  "socket": {:hex, :socket, "0.3.1"},
+  "ssl_verify_fun": {:hex, :ssl_verify_fun, "1.1.0"}}

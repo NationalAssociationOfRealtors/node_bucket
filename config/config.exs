@@ -2,11 +2,16 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
-config :cipher, keyphrase: "testiekeyphraseforcipher",
-                ivphrase: "testieivphraseforcipher",
-                magic_token: "magictoken"
+config :node_bucket, port: 5005, key: << skey :: binary >> = System.get_env("SKEY")
 
-config :node_bucket, port: 5683
+config :node_bucket, NodeBucket.Instream,
+    hosts:     [ "influx" ],
+    auth:      [ method: :basic, username: "root", password: "root" ],
+    pool:      [ max_overflow: 10, size: 5 ],
+    port:      8086,
+    scheme:    "http",
+    writer:    Instream.Writer.Line
+
 
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this
