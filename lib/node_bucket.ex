@@ -2,27 +2,40 @@ defmodule NodeBucket do
     use Application
     require Logger
 
-    @key Application.get_env(:node_bucket, :key) <> <<0>>
-    @key_map %{"t": "temperature", "h": "humidity", "l": "light", "c": "co2", "v": "voc", "d": "dust", "f": "fuel", "n": "decibel", "r": "rssi", "i": "id" }
+    @cipher_key Application.get_env(:node_bucket, :cipher_key) <> <<0>>
 
-    @doc false
+    @influx_database Application.get_env(:node_bucket, :influx_database)
+
+    @mongo_database Application.get_env(:node_bucket, :mongo_database)
+    @mongo_host Application.get_env(:node_bucket, :mongo_host)
+
+    @key_map %{
+        "t": "temperature",
+        "h": "humidity",
+        "l": "light",
+        "c": "co2",
+        "v": "voc",
+        "d": "dust",
+        "f": "fuel",
+        "n": "decibel",
+        "r": "rssi",
+        "i": "id"
+    }
+
     def start(_type, _args) do
         import Supervisor.Spec
 
         children = [
             supervisor(Task.Supervisor, [[name: NodeBucket.TaskSupervisor]]),
             NodeBucket.Instream.child_spec,
-            worker(Task, [NodeBucket, :accept, [Application.get_env(:node_bucket, :port)]]),
-            worker(MongoPool, [[database: "lablog"]])
+            worker(MongoPool, [[hostname: @mongo_host, database: @mongo_database, max_overflow: 10, size: 5]]),
+            worker(Task, [NodeBucket, :accept, [Application.get_env(:node_bucket, :port)]])
         ]
 
         opts = [strategy: :one_for_one, name: NodeBucket.Supervisor]
         Supervisor.start_link(children, opts)
     end
 
-    @doc """
-    Starts accepting connections on the given `port`.
-    """
     def accept(port) do
         {:ok, socket} = :gen_udp.open(port, [:binary, reuseaddr: true, ip: {0,0,0,0}])
         Logger.info "Accepting connections on 0.0.0.0:#{port}"
@@ -43,13 +56,12 @@ defmodule NodeBucket do
     end
 
     def process(socket, addr, port, data) do
-        message = data |> decrypt |> deserialize |> write
+        Logger.info data |> decrypt |> deserialize |> write
     end
 
     def decrypt(data) when data |> is_binary do
         << iv :: binary-size(16), message :: binary >> = data
-        [t, _] = :crypto.block_decrypt(:aes_cbc128, @key, iv, message) |> :binary.split(<<0>>)
-        t
+        :crypto.block_decrypt(:aes_cbc128, @cipher_key, iv, message) |> :binary.split(<<0>>) |> List.first
     end
 
     def deserialize(message) when message |> is_binary do
@@ -57,16 +69,18 @@ defmodule NodeBucket do
     end
 
     def write(message) when message |> is_map do
-        {interface, m} = message |> Map.pop("i")
-        node = get_node(interface)
-        case message |> map_keys(node, interface) |> NodeBucket.Instream.write do
+        {node, m} = message |> Map.pop("i")
+        interface = get_interface(node)
+        points = m |> map_keys(node, interface)
+        IO.inspect points
+        case points |> NodeBucket.Instream.write do
             :ok ->
-                Logger.info update_node(node)
+                update_interface(interface)
         end
     end
 
     def map_keys(message, node, interface) do
-        %{database: "lablog", points: message
+        %{database: @influx_database, points: message
             |> Map.keys
             |> Enum.map(fn(x) ->
                 key = Map.get(@key_map, String.to_atom(x))
@@ -76,20 +90,19 @@ defmodule NodeBucket do
                         value: Map.get(message, x)
                     },
                     tags: %{
-                        node: node.value,
-                        interface: interface
+                        node: node,
+                        interface: interface.value
                     }
                 }
             end)}
     end
 
-    def get_node(interface) do
-        cursor = Mongo.find(MongoPool, "interfaces", %{"id" => interface}, limit: 1)
-        record = Enum.to_list(cursor) |> List.first
-        record["_id"]
+    def get_interface(node) do
+        cursor = Mongo.find(MongoPool, "interfaces", %{"id" => node}, limit: 1)
+        record = Enum.to_list(cursor) |> List.first |> Map.get("_id")
     end
 
-    def update_node(node) do
+    def update_interface(interface) do
         now = :erlang.system_time(:milli_seconds)
         case Mongo.update_one(MongoPool, "interfaces", %{"_id": node}, %{"$set": %{"_last_run": %BSON.DateTime{utc: now}}}) do
             {:ok, _ } ->

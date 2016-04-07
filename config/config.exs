@@ -2,7 +2,11 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
-config :node_bucket, port: 5005, key: << skey :: binary >> = System.get_env("SKEY")
+config :node_bucket, port: 5005, cipher_key: << skey :: binary >> = System.get_env("SKEY")
+
+config :node_bucket, influx_database: "lablog"
+config :node_bucket, mongo_database: "lablog"
+config :node_bucket, mongo_host: "mongo"
 
 config :node_bucket, NodeBucket.Instream,
     hosts:     [ "influx" ],
