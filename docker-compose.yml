@@ -1,9 +1,43 @@
+mongodata:
+    image: mongo:2.6
+    command: "true"
+    volumes:
+        - /nar/mongo:/mongo/data
+
+mongodb:
+    image: mongo:2.6
+    hostname: mongodb
+    command: "--dbpath=/mongo/data"
+    expose:
+        - "27017:27017"
+    volumes_from:
+        - mongodata
+
+influxdata:
+    image: tutum/influxdb
+    command: "true"
+    volumes:
+        - /nar/influx:/data
+
+influxdb:
+    image: tutum/influxdb
+    hostname: influxdb
+    log_driver: "syslog"
+    expose:
+        - "8086:8086"
+        - "8083:8083"
+    volumes_from:
+        - influxdata
+    environment:
+        INFLUXDB_VERSION: 0.12.0-1
+
+
 nodebucket:
     build: .
     command: "mix run --no-halt"
-    external_links:
-        - lablog_mongodb_1:mongo
-        - lablog_influxdb_1:influx
+    links:
+        - mongodb:mongo
+        - influxdb:influx
     volumes:
         - .:/app
     ports:
