@@ -27,7 +27,7 @@ defmodule NodeBucket do
 
     def accept(port) do
         {:ok, socket} = :gen_udp.open(port, [:binary, reuseaddr: true, ip: {0,0,0,0}])
-        Logger.info "Accepting connections on 0.0.0.0:#{port}"
+        Logger.info "Accepting datagrams on port:#{port}"
         handle(socket)
     end
 

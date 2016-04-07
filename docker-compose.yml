@@ -1,10 +1,13 @@
 nodebucket:
     build: .
     command: "mix run --no-halt"
+    external_links:
+        - lablog_mongodb_1:mongo
+        - lablog_influxdb_1:influx
     volumes:
         - .:/app
     ports:
-        - "5683:5683"
+        - "5683:5683/udp"
     dns:
         - 172.16.24.105
         - 10.6.10.208
