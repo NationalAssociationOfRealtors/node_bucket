@@ -1,0 +1,14 @@
+nodebucket:
+    build: .
+    command: "mix run --no-halt"
+    volumes:
+        - .:/app
+    ports:
+        - "5683:5683"
+    dns:
+        - 172.16.24.105
+        - 10.6.10.208
+        - 8.8.8.8
+        - 8.8.4.4
+    env_file:
+        - .env

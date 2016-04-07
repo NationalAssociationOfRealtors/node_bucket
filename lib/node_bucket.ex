@@ -2,12 +2,11 @@ defmodule NodeBucket do
     use Application
     require Logger
 
+    @name __MODULE__
+
     @cipher_key Application.get_env(:node_bucket, :cipher_key) <> <<0>>
 
     @influx_database Application.get_env(:node_bucket, :influx_database)
-
-    @mongo_database Application.get_env(:node_bucket, :mongo_database)
-    @mongo_host Application.get_env(:node_bucket, :mongo_host)
 
     @key_map %{
         "t": "temperature",
@@ -23,17 +22,7 @@ defmodule NodeBucket do
     }
 
     def start(_type, _args) do
-        import Supervisor.Spec
-
-        children = [
-            supervisor(Task.Supervisor, [[name: NodeBucket.TaskSupervisor]]),
-            NodeBucket.Instream.child_spec,
-            worker(MongoPool, [[hostname: @mongo_host, database: @mongo_database, max_overflow: 10, size: 5]]),
-            worker(Task, [NodeBucket, :accept, [Application.get_env(:node_bucket, :port)]])
-        ]
-
-        opts = [strategy: :one_for_one, name: NodeBucket.Supervisor]
-        Supervisor.start_link(children, opts)
+        NodeBucket.Supervisor.start_link
     end
 
     def accept(port) do
