@@ -104,7 +104,7 @@ defmodule NodeBucket do
 
     def update_interface(interface) do
         now = :erlang.system_time(:milli_seconds)
-        case Mongo.update_one(MongoPool, "interfaces", %{"_id": node}, %{"$set": %{"_last_run": %BSON.DateTime{utc: now}}}) do
+        case Mongo.update_one(MongoPool, "interfaces", %{"_id": interface}, %{"$set": %{"_last_run": %BSON.DateTime{utc: now}}}) do
             {:ok, _ } ->
                 :ok
         end
