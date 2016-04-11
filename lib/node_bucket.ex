@@ -76,7 +76,7 @@ defmodule NodeBucket do
                 %{
                     measurement: "node.#{key}",
                     fields: %{
-                        value: Map.get(message, x)
+                        value: Map.get(message, x) / 1
                     },
                     tags: %{
                         node: node,
