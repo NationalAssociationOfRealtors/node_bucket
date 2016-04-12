@@ -1,49 +1,16 @@
-mongodata:
-    image: mongo:2.6
-    command: "true"
-    volumes:
-        - /nar/mongo:/mongo/data
-
-mongodb:
-    image: mongo:2.6
-    hostname: mongodb
-    command: "--dbpath=/mongo/data"
-    expose:
-        - "27017:27017"
-    volumes_from:
-        - mongodata
-
-influxdata:
-    image: tutum/influxdb
-    command: "true"
-    volumes:
-        - /nar/influx:/data
-
-influxdb:
-    image: tutum/influxdb
-    hostname: influxdb
-    log_driver: "syslog"
-    expose:
-        - "8086:8086"
-        - "8083:8083"
-    volumes_from:
-        - influxdata
-    environment:
-        INFLUXDB_VERSION: 0.12.0-1
-
-
 nodebucket:
     build: .
     command: "mix run --no-halt"
-    links:
-        - mongodb:mongo
-        - influxdb:influx
+    external_links:
+        - rosettahomeservices_mongodb_1:mongo
+        - rosettahomeservices_influxdb_1:influx
     volumes:
         - .:/app
     ports:
         - "5683:5683/udp"
     dns:
-        - 172.16.24.105
+        - 172.16.24.190
+        - 172.17.24.190
         - 10.6.10.208
         - 8.8.8.8
         - 8.8.4.4

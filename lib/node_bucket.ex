@@ -26,7 +26,7 @@ defmodule NodeBucket do
     end
 
     def accept(port) do
-        {:ok, socket} = :gen_udp.open(port, [:binary, reuseaddr: true, ip: {0,0,0,0}])
+        {:ok, socket} = :gen_udp.open(port, [:binary, {:active, :true}])
         Logger.info "Accepting datagrams on port:#{port}"
         handle(socket)
     end
@@ -45,7 +45,10 @@ defmodule NodeBucket do
     end
 
     def process(socket, addr, port, data) do
-        Logger.info data |> decrypt |> deserialize |> write
+        :ok = data
+            |> decrypt
+            |> deserialize
+            |> write
     end
 
     def decrypt(data) when data |> is_binary do
@@ -60,12 +63,11 @@ defmodule NodeBucket do
     def write(message) when message |> is_map do
         {node, m} = message |> Map.pop("i")
         interface = get_interface(node)
-        points = m |> map_keys(node, interface)
-        IO.inspect points
-        case points |> NodeBucket.Instream.write do
-            :ok ->
-                update_interface(interface)
-        end
+        points = m
+            |> map_keys(node, interface)
+            |> IO.inspect
+        :ok = NodeBucket.Instream.write(points)
+        update_interface(interface)
     end
 
     def map_keys(message, node, interface) do
@@ -93,10 +95,13 @@ defmodule NodeBucket do
 
     def update_interface(interface) do
         now = :erlang.system_time(:milli_seconds)
-        case Mongo.update_one(MongoPool, "interfaces", %{"_id": interface}, %{"$set": %{"_last_run": %BSON.DateTime{utc: now}}}) do
-            {:ok, _ } ->
-                :ok
-        end
+        {:ok, _} = Mongo.update_one(
+            MongoPool,
+            "interfaces",
+            %{"_id": interface},
+            %{"$set": %{"_last_run": %BSON.DateTime{utc: now}}}
+        )
+        :ok
     end
 
 end

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+rsync -rzhe ssh --exclude='/.git' --filter=':- .gitignore' --progress ./ ccote@crtlabsdev.realtors.org:/app/node_bucket

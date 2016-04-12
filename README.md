@@ -1,6 +1,6 @@
 # NodeBucket
 
-**TODO: Add description**
+UDP Server excepting encrypted json datagrams from [SensorNode](https://github.com/NationalAssociationofRealtors/SensorNode)
 
 ## Installation
 
@@ -17,4 +17,3 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
         def application do
           [applications: [:node_bucket]]
         end
-
