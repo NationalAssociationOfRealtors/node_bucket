@@ -45,10 +45,13 @@ defmodule NodeBucket do
     end
 
     def process(socket, addr, port, data) do
+        IO.inspect addr
+        IO.inspect port
         :ok = data
             |> decrypt
             |> deserialize
             |> write
+            |> ack(socket, addr, port)
     end
 
     def decrypt(data) when data |> is_binary do
@@ -68,6 +71,10 @@ defmodule NodeBucket do
             |> IO.inspect
         :ok = NodeBucket.Instream.write(points)
         update_interface(interface)
+    end
+
+    def ack(:ok, socket, address, port) do
+        :gen_udp.send(socket, address, port, "1")
     end
 
     def map_keys(message, node, interface) do
