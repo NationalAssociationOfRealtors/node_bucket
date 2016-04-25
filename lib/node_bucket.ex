@@ -89,7 +89,7 @@ defmodule NodeBucket do
                     },
                     tags: %{
                         node: node,
-                        interface: interface.value
+                        interface: Base.encode16(interface.value, case: :lower)
                     }
                 }
             end)}
