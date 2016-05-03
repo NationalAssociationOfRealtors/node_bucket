@@ -17,7 +17,7 @@ defmodule NodeBucket.Supervisor do
             supervisor(Task.Supervisor, [[name: NodeBucket.TaskSupervisor]]),
             NodeBucket.Instream.child_spec,
             worker(MongoPool, [[hostname: @mongo_host, database: @mongo_database, max_overflow: 10, size: 5]]),
-            worker(Task, [NodeBucket, :accept, [@port]], name: @name)
+            worker(NodeBucket.UDPServer, [@port])
         ]
         supervise(children, strategy: :one_for_one)
     end
