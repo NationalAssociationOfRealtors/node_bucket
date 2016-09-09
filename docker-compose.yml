@@ -1,6 +1,7 @@
 nodebucket:
     build: .
     command: "mix run --no-halt"
+    log_driver: "syslog"
     external_links:
         - rosettahomeservices_mongodb_1:mongo
         - rosettahomeservices_influxdb_1:influx
